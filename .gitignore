@@ -1,0 +1,25 @@
+# Environments
+.venv/
+.tools/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Data and Spark artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/silver/*
+!data/silver/.gitkeep
+data/gold/*
+!data/gold/.gitkeep
+metastore_db/
+derby.log
+*.parquet/
+.checkpoint/
+
+# Local config & secrets
+.env
+*.db
+*.sqlite
+.gemini/
