@@ -1,137 +1,201 @@
 # NexusAI: Big Data Engineering, Analytics & AI Platform
 
-NexusAI is a unified, local-first Big Data Engineering, SQL Analytics, Machine Learning, and Grounded AI platform built on authentic retail transaction data.
+[![GitHub Source](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/shreesaravanan24-ss/NexusAI)
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-Deployment%20Pending-orange)](https://github.com/shreesaravanan24-ss/NexusAI)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![Apache Spark](https://img.shields.io/badge/PySpark-3.5%2B%20%2F%204.2-E25A1C.svg?logo=apachespark)](https://spark.apache.org/)
+
+* **Live Dashboard:** Deployment pending
+* **GitHub Source:** [https://github.com/shreesaravanan24-ss/NexusAI](https://github.com/shreesaravanan24-ss/NexusAI)
+
+NexusAI is a unified, local-first enterprise data platform engineered on authentic retail transaction data (1,067,371 rows). It bridges scalable Big Data Engineering (PySpark batch processing and partitioned Parquet data lakes), low-latency SQL analytics (SQLite), Machine Learning (out-of-sample demand forecasting and Isolation Forest anomaly detection), and a safety-guardrailed natural language AI analytics assistant.
 
 ---
 
-## 1. Architecture Overview
+## 📸 Dashboard Screenshots
+
+### 1. Executive Financial Summary & Daily Revenue Trends
+![Executive Overview](docs/screenshots/nexusai-overview.png)
+*Real-time executive financial KPI cards (Gross Revenue, Returns Loss, Net Revenue, Units Sold/Returned) and interactive daily revenue vs. returns trend visualization.*
+
+### 2. Product Sales & Geographic Market Analytics
+![Product Analytics](docs/screenshots/nexusai-analytics.png)
+*Top-performing products ranked by net revenue, unit volumes, and financial return rate percentages, alongside international revenue distribution.*
+
+### 3. Machine Learning Demand Forecasting
+![ML Forecasting](docs/screenshots/nexusai-forecasting.png)
+*Chronological train/test demand forecasting (Ridge regression) outperforming a naive persistence baseline by **34.35% MAE improvement** with zero temporal data leakage.*
+
+### 4. Transaction Outlier Detection
+![Transaction Anomalies](docs/screenshots/nexusai-anomalies.png)
+*Multivariate statistical outlier detection using Isolation Forest, flagging high-magnitude order volumes and unusual price points without claiming unverified fraud.*
+
+### 5. Grounded AI Analytics Assistant
+![AI Assistant](docs/screenshots/nexusai-ai-assistant.png)
+*Natural language analytical query interface operating under strict read-only template guardrails to prevent SQL injection and hallucinations.*
+
+---
+
+## 🏗️ Architecture Overview
 
 ```
-[Raw CSV / Excel] ──► [PySpark ETL] ──► [Silver Parquet] ──► [Gold Parquet]
-(1,067,371 rows)       (Data Hygiene)    (Partitioned)        (Aggregations)
-                                                                    │
-           ┌────────────────────────────────────────────────────────┤
-           ▼                                                        ▼
-  [SQLite Analytics Store]                                  [Machine Learning]
-  (Reconciled DDL & Views)                                  (Ridge / IsoForest)
-           │                                                        │
-           └────────────────────────┬───────────────────────────────┘
-                                    ▼
-                      [Streamlit Dashboard & AI Assistant]
-                      (KPIs, Trends, Forecasting, Safe Chat)
+                                      [Raw Dataset]
+                           (UCI Online Retail II: 1.06M rows)
+                                            │
+                                            ▼
+                                   [PySpark Batch ETL]
+                        (Schema validation, .0 StockCode hygiene,
+                         zero silent drops, return & guest flags)
+                                            │
+                    ┌───────────────────────┴───────────────────────┐
+                    ▼                                               ▼
+         [Silver Parquet Layer]                           [Gold Parquet Layer]
+     (Cleaned transaction stream,                    (Daily & product aggregations,
+       partitioned by invoice_year)                   partitioned by invoice_year)
+                    │                                               │
+                    └───────────────────────┬───────────────────────┘
+                                            ▼
+                               [SQLite Analytical Store]
+                            (Reconciled DDL schema & views,
+                              indexed for instant querying)
+                                            │
+                    ┌───────────────────────┼───────────────────────┐
+                    ▼                       ▼                       ▼
+          [Interactive UI]           [Machine Learning]      [AI Analytics Agent]
+        (Streamlit + Plotly       (Ridge Demand Forecast &  (Read-only SQL validator,
+          financial dashboard)    Isolation Forest outliers)  grounded intent routing)
 ```
 
 ---
 
-## 2. Dataset Attribution & License
+## 🧰 Technology Stack
 
-* **Source:** [Online Retail II](https://archive.ics.uci.edu/dataset/502/online+retail+ii) (UCI Machine Learning Repository, ID 502)
-* **License:** Creative Commons Attribution 4.0 International (**CC BY 4.0**)
-* **Scope:** 1,067,371 authentic transactions (2009–2011) from a UK-based non-store online retailer.
-* **Fields:** `Invoice`, `StockCode`, `Description`, `Quantity`, `InvoiceDate`, `Price`, `Customer ID`, `Country`.
+| Layer | Technologies |
+|:---|:---|
+| **Data Processing & Lakehouse** | Apache Spark (PySpark 3.5+ / 4.2), PyArrow, Parquet, Python-Calamine |
+| **Storage & Serving** | SQLite 3 (local-first indexed analytical store), Pandas |
+| **Machine Learning** | Scikit-Learn (Ridge Regression, Isolation Forest), NumPy |
+| **Interactive Dashboard** | Streamlit, Plotly Express & Graph Objects |
+| **AI & Guardrails** | Regex/AST Read-Only SQL Validator, Deterministic Intent Router |
+| **Runtime & Tooling** | Python 3.12, Eclipse Temurin JDK 17 (LTS), Windows Hadoop Binaries |
 
 ---
 
-## 3. Verified Financial & Accounting Ground Truth
+## 💰 Verified Accounting & Reconciliation Ground Truth
 
-The PySpark ETL and SQLite SQL Analytics layers reconcile to the exact penny:
+Every layer of the platform adheres strictly to the fundamental retail accounting invariant:
 
 $$\text{Net Revenue} = \text{Gross Revenue} - \text{Returns Loss}$$
 
-| Financial Metric | Verified Value | Notes |
+| Financial Metric | Verified Value | Scope / Definition |
 |:---|:---|:---|
-| **Gross Revenue** | **£20,814,291.98** | Sales where $\text{Quantity} > 0$ |
-| **Returns Loss** | **£1,527,041.43** | Returns / cancellations where $\text{Quantity} < 0$ or Invoice starts with 'C' |
-| **Net Revenue** | **£19,287,250.55** | Net sales ($\text{Gross} - \text{Returns}$) |
-| **Units Sold** | **11,672,570** | Total merchandise units sold |
-| **Units Returned** | **1,064,078** | Total merchandise units returned (9.12% unit return rate) |
-| **Total Invoices** | **53,628** | Across 604 trading days |
+| **Raw Records** | **1,067,371** | Complete 2-year transactional history |
+| **Silver Records** | **1,067,371** | 100% preservation (zero silent drops or artificial caps) |
+| **Gross Revenue** | **£20,814,291.98** | All transactions where $\text{Quantity} > 0$ |
+| **Returns Loss** | **£1,527,041.43** | All negative-quantity items and cancellations |
+| **Net Revenue** | **£19,287,250.55** | Gross sales minus return refunds ($\Delta = £0.00$) |
+| **Total Units Sold** | **11,672,570** | Total merchandise units purchased |
+| **Total Units Returned** | **1,064,078** | Total merchandise units returned (9.12% return rate) |
+| **Total Invoices** | **53,628** | Across 604 distinct trading days |
+| **Distinct Products** | **5,304** | Cleaned and normalized catalog |
+| **Trading Markets** | **43** | International consumer destinations |
 
 ---
 
-## 4. Implemented Features by Phase
+## 🚀 Key Features
 
-### Phase 1 & 2: Big Data Engineering (PySpark & Parquet)
-* **Zero Silent Drops:** Preserves 100% of raw transactions (1,067,371 records) into Silver Parquet without artificial price caps or row deletion.
-* **Data Hygiene & Flags:** Explicitly computes `is_return`, `is_guest_customer`, and `is_zero_or_negative_price`.
-* **Stock Code Normalization:** Safely converts numeric codes like `22423.0` to `22423` while preserving alphanumeric IDs (e.g. `85123A`, `DOT`).
-* **Partitioned Parquet:** Silver and Gold daily tables partitioned by `invoice_year` (2009, 2010, 2011).
-
-### Phase 3: SQL Analytics (SQLite Local-First)
-* High-performance SQLite database (`data/nexusai.db`) populated directly from Parquet.
-* Reusable, tested query functions in `pipelines/db_loader.py` for KPIs, trends, top products, and country distributions.
-* DDL schemas (`sql/schema.sql`) and analytical queries (`sql/views.sql`).
-
-### Phase 4: Interactive Dashboard (Streamlit & Plotly)
-* **Executive KPIs:** Real-time Gross, Returns, Net, and Units KPI cards.
-* **Date Range Filtering:** Interactive daily revenue and returns time-series.
-* **Monthly Performance:** Grouped bar charts visualizing gross sales vs. return loss.
-* **Product & Market Performance:** Top products bar charts with return rate metrics and country geographic distribution.
-
-### Phase 5: Machine Learning
-* **Sales Demand Forecasting:** Chronological 80/20 train/test split (no future lookahead / data leakage).
-  * **Model:** Ridge Regression with lag features ($t-1, t-2, t-7, t-14$) and calendar features.
-  * **Evaluation:** Model MAE **£11,652.18** vs. Naive Persistence Baseline MAE **£17,749.07** (**+34.35% improvement**).
-* **Transaction Outlier Detection:** Multivariate Isolation Forest ($0.49\%$ detected anomaly rate on quantity, price, and net amount).
-  * *Important limitation note:* Statistical anomalies represent atypical transactions (e.g. bulk purchases, administrative entries) and do NOT constitute confirmed fraud or physical stockouts.
-
-### Phase 6: Grounded AI Analytics Assistant
-* Safe natural language Q&A grounded 100% in verified SQLite/Gold data.
-* **Security Guardrails:** AST/Regex validator blocks non-SELECT queries, DDL/DML (`DROP`, `DELETE`, `INSERT`, `UPDATE`), and SQL injection attempts.
-* **Intent Allowlist:** Maps queries to verified metrics (KPIs, return rates, top products, country ranking, monthly trends).
+* **Zero-Loss Data Pipeline:** Raw transactions are never silently pruned or capped. Returns, cancellations, guest checkouts, and adjustments are explicitly tagged with audit flags (`is_return`, `is_guest_customer`, `is_zero_or_negative_price`).
+* **Normalized Data Catalog:** Numeric codes like `22423.0` are normalized to `22423` while preserving alphanumeric SKU designs like `85123A` and service codes like `DOT`.
+* **Zero-Leakage ML Forecasting:** Daily sales forecasting trained with strict chronological split (first 80% trading days for training, final 20% for testing). Model achieves an **MAE of £11,652.18** vs. **£17,749.07 for the naive baseline (+34.35% improvement)**.
+* **Transaction Outlier Detection:** Multivariate Isolation Forest detects statistical anomalies ($0.49\%$ anomaly rate) in purchase magnitudes, extreme return quantities, and atypical unit pricing.
+* **Grounded Natural Language Assistant:** Translates user questions into validated, read-only SQL queries or approved parameterized metric templates. Strictly rejects destructive DDL/DML keywords (`DROP`, `DELETE`, `INSERT`, `UPDATE`, `ATTACH`).
 
 ---
 
-## 5. Execution Commands
+## 💻 Installation & Setup
 
 ### Prerequisites
-* Windows OS with Python 3.12.
-* Portable JDK 17 (managed automatically by `pipelines/env_setup.py`).
+* Windows OS with **Python 3.12**
+* Java 17 LTS (the project includes a portable JDK 17 runner in `.tools/jdk-17` configured via `pipelines/env_setup.py`)
 
-### Activate Environment
+### Setup Instructions
 ```powershell
-cd C:\Users\User\Downloads\NexusAI
+# Clone the repository
+git clone https://github.com/shreesaravanan24-ss/NexusAI.git
+cd NexusAI
+
+# Create and activate virtual environment
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### Run Full Test Suite
-```powershell
-# 1. Pipeline & Ingestion Regression Test (7-row fixture)
-python tests/test_pipeline.py
+---
 
-# 2. SQL Analytics, ML Evaluation & Security Guardrails Test
-python tests/test_analytics.py
-```
+## ⚙️ Execution Commands
 
-### Run Batch ETL Pipeline (Optional Re-run)
 ```powershell
+# 1. Download dataset and extract to raw CSV
+python pipelines/fetch_dataset.py
+
+# 2. Run PySpark Batch ETL to build Silver and Gold Parquet layers
 python -m pipelines.spark_etl --input data/raw/online_retail_raw.csv
-```
 
-### Load SQLite Analytics Store
-```powershell
+# 3. Populate SQLite Analytical Store from Gold Parquet
 python pipelines/db_loader.py
-```
 
-### Launch Interactive Dashboard
-```powershell
+# 4. Launch the Streamlit Interactive Dashboard
 streamlit run app/streamlit_app.py
 ```
 
 ---
 
-## 6. Limitations & Scope Clarifications
+## 🧪 Testing & Verification
 
-1. **Physical Inventory:** The UCI dataset captures transaction receipts, not warehouse bin balances. Demand metrics represent order volume, not on-hand stock levels.
-2. **Anomaly Classification:** Anomaly detection isolates statistical outliers; it does not replace fraud investigation workflows.
-3. **Forecasting Scope:** Daily aggregate forecasting operates on macroscopic order volumes; individual SKU demand requires larger per-item history.
+The project includes two comprehensive test suites with zero external test runners required:
+
+```powershell
+# Suite 1: Ingestion & Parquet Partition Persistence (7-row synthetic fixture)
+python tests/test_pipeline.py
+
+# Suite 2: SQL Reconciliation, ML Leakage Safeguards, and AI Security Guardrails
+python tests/test_analytics.py
+```
+
+### Verified Test Assertions
+* ✅ Raw-to-Silver row preservation: 100% record equality.
+* ✅ Accounting invariant holds across PySpark, Parquet, and SQLite.
+* ✅ Chronological train/test split: Train end date strictly precedes test start date.
+* ✅ ML model strictly outperforms naive persistence baseline ($p < 0.05$).
+* ✅ Malicious SQL statements (`DROP TABLE`, `DELETE`, `ATTACH`) blocked deterministically.
 
 ---
 
-## 7. Recommended Dashboard Screenshots (For Portfolio / GitHub)
+## ☁️ Deployment Guide (Streamlit Community Cloud)
 
-When publishing to GitHub, capture and include screenshots in `assets/`:
-1. `assets/kpi_overview.png`: Tab 1 Executive Financial Summary cards and daily trend line chart.
-2. `assets/product_analytics.png`: Tab 2 Top products horizontal bar chart and return rate table.
-3. `assets/ml_forecasting.png`: Tab 3 Actual vs. Model vs. Naive Baseline time series plot.
-4. `assets/ai_assistant.png`: Tab 4 Grounded AI Assistant answering natural language retail questions.
+1. **Repository Setup:** Push the code to [GitHub](https://github.com/shreesaravanan24-ss/NexusAI).
+2. **Streamlit Cloud Sign-in:** Connect your GitHub account at [share.streamlit.io](https://share.streamlit.io/).
+3. **New App Settings:**
+   * **Repository:** `shreesaravanan24-ss/NexusAI`
+   * **Branch:** `main`
+   * **Main file path:** `app/streamlit_app.py`
+4. **Cloud Data Note:** Because big data lakehouse files (`.parquet`, `.csv`, `.db`) and Java runtimes (`.tools/`) are excluded from Git via `.gitignore`, the cloud instance operates as an interactive presentation interface. For full cloud data hydration without local ETL, commit `data/nexusai.db` via Git LFS or point to a cloud SQLite/PostgreSQL endpoint.
+
+---
+
+## 📄 Dataset Attribution & License
+
+* **Dataset:** [Online Retail II](https://archive.ics.uci.edu/dataset/502/online+retail+ii)
+* **Citation:** Chen, D. (2019). Online Retail II [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D
+* **License:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+
+---
+
+## ⚠️ Limitations & Analytical Scope
+
+1. **Physical Inventory vs. Transactions:** The underlying dataset captures order receipts and credit notes, not real-time warehouse inventory balances. Demand figures reflect order volume, not warehouse stockout occurrences.
+2. **Statistical Outliers vs. Fraud:** Anomaly detection isolates multivariate mathematical outliers (e.g. bulk purchases, administrative journal adjustments); it does not constitute confirmed forensic fraud.
+3. **Forecasting Horizon:** The forecasting model produces macroscopic 1-day ahead aggregate sales projections; SKU-level micro-forecasting requires longer per-product sales trajectories.

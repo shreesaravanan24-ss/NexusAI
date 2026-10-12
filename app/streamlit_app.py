@@ -48,12 +48,22 @@ st.set_page_config(
 
 
 @st.cache_resource
-def ensure_database_ready() -> bool:
-    """Ensures SQLite analytical database is populated from Gold Parquet."""
-    if not DEFAULT_DB_PATH.exists() or DEFAULT_DB_PATH.stat().st_size == 0:
+def ensure_database_ready() -> tuple[bool, str]:
+    """Ensures SQLite analytical database is populated from Gold Parquet or reports data status."""
+    gold_daily = BASE_DIR / "data" / "gold" / "daily_sales_summary"
+    if DEFAULT_DB_PATH.exists() and DEFAULT_DB_PATH.stat().st_size > 0:
+        return True, "Database ready"
+    
+    if gold_daily.exists():
         with st.spinner("Initializing analytical SQLite store from Gold Parquet..."):
             load_parquet_to_sqlite()
-    return True
+        return True, "Database initialized from Gold Parquet"
+
+    return False, (
+        "Analytical database or Gold Parquet data not detected in data/ directory.\n"
+        "In a local environment, run: `python -m pipelines.spark_etl --input data/raw/online_retail_raw.csv` "
+        "and `python pipelines/db_loader.py` to build the data layers."
+    )
 
 
 @st.cache_data(ttl=3600)
@@ -113,10 +123,15 @@ def load_anomalies(sample_size=10000):
 
 # Main App Execution
 def main():
-    ensure_database_ready()
+    ready, msg = ensure_database_ready()
 
     st.title("🛍️ NexusAI Analytics Platform")
     st.caption("End-to-End Big Data Engineering (PySpark / Parquet) • SQL Analytics (SQLite) • ML Forecasting • Grounded AI Assistant")
+
+    if not ready:
+        st.error("⚠️ Data Availability Notice")
+        st.info(msg)
+        return
 
     tabs = st.tabs([
         "📊 Executive KPI & Trends",
